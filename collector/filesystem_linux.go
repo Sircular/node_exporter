@@ -65,10 +65,10 @@ func (c *filesystemCollector) GetStats() ([]filesystemStats, error) {
 	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			for labels := range labelChan {
 				statChan <- c.processStat(labels)
 			}
-			wg.Done()
 		}()
 	}
 
@@ -107,7 +107,7 @@ func (c *filesystemCollector) GetStats() ([]filesystemStats, error) {
 }
 
 func (c *filesystemCollector) processStat(labels filesystemLabels) filesystemStats {
-	// The success channel is used do tell the "watcher" that the stat
+	// The success channel is used to tell the "watcher" that the stat
 	// finished successfully. The channel is closed on success.
 	success := make(chan struct{})
 	go stuckMountWatcher(labels.mountPoint, success, c.logger)
